@@ -10,7 +10,7 @@ products:
   - pgvector
 urlFragment: langchain-agent-python
 name: LangChain Sales Agent with MCP and Azure OpenAI (Python)
-description: A multi-step LangChain v1 sales-conversation agent that uses the Azure OpenAI Responses API, an MCP server with Postgres + pgvector for catalog and CRM tools, and ships with one command via azd up.
+description: A multi-step AI sales-conversation agent built with LangChain v1, Azure OpenAI Responses API, Model Context Protocol (MCP), PostgreSQL, and pgvector.
 ---
 
 <div align="center">
