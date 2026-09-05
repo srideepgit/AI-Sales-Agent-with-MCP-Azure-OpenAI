@@ -15,7 +15,7 @@ description: A multi-step LangChain v1 sales-conversation agent that uses the Az
 
 <div align="center">
 
-# 🤖 LangChain Sales Agent
+# 🤖 AI-Sales-Agent-with-MCP-Azure-OpenAI
 
 ### Multi-Step AI Sales Agent with Azure OpenAI Responses API + MCP
 
