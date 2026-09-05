@@ -1,306 +1,1140 @@
 ---
+
 page_type: sample
 languages:
-  - python
-products:
-  - azure-openai
-  - azure-container-apps
-  - azure
-  - langchain
-  - pgvector
-urlFragment: langchain-agent-python
-name: LangChain Sales Agent with MCP and Azure OpenAI (Python)
-description: A multi-step LangChain v1 sales-conversation agent that uses the Azure OpenAI Responses API, an MCP server with Postgres + pgvector for catalog and CRM tools, and ships with one command via azd up.
+
+* python
+  products:
+* azure-openai
+* azure-container-apps
+* azure
+* langchain
+* pgvector
+  urlFragment: langchain-agent-python
+  name: LangChain Sales Agent with MCP and Azure OpenAI (Python)
+  description: A multi-step LangChain v1 sales-conversation agent that uses the Azure OpenAI Responses API, an MCP server with Postgres + pgvector for catalog and CRM tools, and ships with one command via azd up.
+
 ---
 
-<!-- YAML front-matter schema: https://review.learn.microsoft.com/en-us/help/contribute/samples/process/onboarding?branch=main#supported-metadata-fields-for-readmemd -->
+<div align="center">
 
-# LangChain Sales Agent (Responses API + MCP)
+# 🤖 LangChain Sales Agent
 
-A Python sample that shows how to build a **multi-step sales agent** with [LangChain v1](https://python.langchain.com/) and [Azure OpenAI](https://docs.langchain.com/oss/python/integrations/chat/azure_chat_openai) that drive sales through a 6-step funnel using the [handoffs pattern](https://docs.langchain.com/oss/python/langchain/multi-agent/handoffs-customer-support). The agent grounds it's responses in data stored in a [Postgres](https://www.postgresql.org/) database with [pgvector](https://github.com/pgvector/pgvector) for semantic search. The database is deployed as an [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) server, that exposes several tools the agent can use to quickly access data. Since the agent is using the Responses API, it can easily connect to MCP servers and comes with several build in tools like a code interpreter and image genration. [Get started now](#quick-start).
+### Responses API + MCP + PostgreSQL + pgvector
+
+<p>
+  <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"/>
+  <img src="https://img.shields.io/badge/LangChain-v1-1C3C3C?style=for-the-badge&logo=chainlink&logoColor=white" alt="LangChain"/>
+  <img src="https://img.shields.io/badge/Azure%20OpenAI-Responses%20API-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white" alt="Azure OpenAI"/>
+  <img src="https://img.shields.io/badge/MCP-FastMCP-6B4FBB?style=for-the-badge" alt="MCP"/>
+  <img src="https://img.shields.io/badge/PostgreSQL-pgvector-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"/>
+  <img src="https://img.shields.io/badge/Azure%20Container%20Apps-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white" alt="Azure Container Apps"/>
+</p>
+
+<p>
+  <a href="https://github.com/Azure-Samples/langchain-agent-python">
+    <img src="https://img.shields.io/github/stars/Azure-Samples/langchain-agent-python?style=flat-square&logo=github" alt="GitHub Stars"/>
+  </a>
+  <a href="https://github.com/Azure-Samples/langchain-agent-python/network/members">
+    <img src="https://img.shields.io/github/forks/Azure-Samples/langchain-agent-python?style=flat-square&logo=github" alt="GitHub Forks"/>
+  </a>
+  <img src="https://img.shields.io/github/license/Azure-Samples/langchain-agent-python?style=flat-square" alt="License"/>
+  <img src="https://img.shields.io/github/last-commit/Azure-Samples/langchain-agent-python?style=flat-square" alt="Last Commit"/>
+</p>
+
+### A production-oriented reference architecture for a multi-step AI sales conversation.
+
+<br/>
+
+<a href="#quick-start">
+  <img src="https://img.shields.io/badge/🚀%20Deploy%20to%20Azure-azd%20up-0078D4?style=for-the-badge" alt="Deploy to Azure"/>
+</a>
+
+<br/><br/>
+
+**Built with Azure OpenAI Responses API • LangChain v1 • Model Context Protocol • PostgreSQL + pgvector • Managed Identity**
+
+</div>
+
+---
+
+## 🧭 What This Sample Demonstrates
+
+This repository shows how to build a **multi-step AI sales agent** using **LangChain v1** and the **Azure OpenAI Responses API**.
+
+The agent guides a sales conversation through a six-step funnel using LangChain's **handoff pattern**, retrieves grounded business information through an **MCP server**, and uses **PostgreSQL + pgvector** for semantic search across product and sales content.
+
+The architecture separates the public-facing agent from the MCP service and uses **Azure Container Apps** for deployment.
+
+### Core capabilities
+
+```text
+┌──────────────────────────────────────────────────────────────┐
+│                    LANGCHAIN SALES AGENT                     │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  🧠 Multi-step Sales Conversation                           │
+│  🔄 Handoff-based Funnel State                               │
+│  🔎 Semantic Retrieval with pgvector                         │
+│  🔌 MCP Tool Integration                                     │
+│  🛡️ Groundedness Validation                                  │
+│  🧩 Middleware-based Query Refinement                         │
+│  📚 Product / KB / Case Study Retrieval                      │
+│  💰 Pricing & Plan Comparison                                 │
+│  👤 Lead Qualification & AE Handoff                          │
+│  🔐 Entra ID / Managed Identity                              │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+---
+
+# 🖼️ Application Preview
+
+The original project screenshots are retained below because they are important for understanding the user experience and debugging workflow.
+
+### 💬 Sales Agent
 
 ![LangChain MCP Agent](images/app-image.png)
 
+### 🐞 Agent Debug Panel
+
 ![Agent debug panel](images/debug-image.png)
+
+### ☁️ GitHub Codespaces
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/Azure-Samples/langchain-agent-python)
 
-## What you'll learn
+---
 
-- How to use LangChain's [Handoff]() pattern for multistep tasks.
-- How to use Middleware in LangChain to refine the users query, manage context and validate response groundedness. (`gpt-5.4-mini` will power the main agent and middleware tasks will use `gpt-5-nano`)
-- How to back retrieval with **Postgres + pgvector**: HNSW indexes over `text-embedding-3-small` vectors for case studies, KB articles, and the product catalogue.
-- How to expose **CRM-style tools** as MCP tools with [FastMCP](): `search_case_studies`, `search_kb_articles`, `get_pricing`, `compare_plans` — over streamable HTTP.
-- How to use **Entra ID (Managed Identity)** for keyless auth to Azure OpenAI and Postgres.
+# 📚 What You'll Learn
 
+By working through this sample, you will learn how to:
 
-## Architecture
+* Build a **multi-step LangChain v1 agent** using the handoff pattern.
+* Use **middleware** to refine user queries, control context, and validate grounded responses.
+* Connect an agent to **Postgres + pgvector** for semantic retrieval.
+* Use **HNSW indexes** with `text-embedding-3-small` embeddings.
+* Expose business capabilities through **Model Context Protocol (MCP)** tools.
+* Integrate **FastMCP** with a LangChain agent.
+* Use the Azure OpenAI **Responses API** with hosted tools.
+* Use **Entra ID / Managed Identity** instead of static API keys.
+* Deploy independently scalable services with **Azure Container Apps**.
+* Provision the environment with **Bicep + Azure Developer CLI (`azd`)**.
+* Add observability through **Application Insights**.
 
-The core LangChain Agent and the PostgreSQL MCP server are deployed independently as two Container Apps:
+---
+
+# 🏗️ Architecture
+
+The application is split into two independently deployed Container Apps:
+
+```text
+                         ┌─────────────────────────────┐
+                         │        User / Browser       │
+                         └──────────────┬──────────────┘
+                                        │
+                                        ▼
+                     ┌────────────────────────────────────┐
+                     │       Azure Container Apps         │
+                     │                                    │
+                     │        🤖 Sales Agent              │
+                     │        LangChain v1                │
+                     │        Starlette                   │
+                     └───────────────┬────────────────────┘
+                                     │
+                            MCP over HTTP
+                                     │
+                                     ▼
+                     ┌────────────────────────────────────┐
+                     │       Azure Container Apps         │
+                     │                                    │
+                     │       🔌 MCP Server                │
+                     │       FastMCP                      │
+                     │       9 Read-only Tools            │
+                     └───────────────┬────────────────────┘
+                                     │
+                    ┌────────────────┴────────────────┐
+                    │                                 │
+                    ▼                                 ▼
+        ┌───────────────────────┐        ┌────────────────────────┐
+        │ Azure PostgreSQL      │        │ Azure OpenAI           │
+        │ Flexible Server       │        │                        │
+        │ + pgvector            │        │ Chat + Embeddings      │
+        └───────────────────────┘        └────────────────────────┘
+```
 
 ![Zava Sales Agent architecture](images/architecture.png)
 
-The agent is the only public-facing service. The MCP server is reachable only from inside the Container Apps environment. All Azure access uses a user-assigned managed identity with RBAC to Azure OpenAI and PostgreSQL.
+### 🔐 Security Boundary
 
-## The 6-step sales funnel
+The **agent is the only public-facing service**.
 
-Each step is a small system prompt plus a filtered tool subset. The agent moves between steps by calling state-mutating tools (`set_intent`, `advance_to_step`, `back_to_greet`, `escalate_to_ae`):
+The MCP service is reachable only from within the Container Apps environment.
+
+Azure access is secured through a **user-assigned managed identity** with RBAC access to Azure OpenAI and PostgreSQL.
+
+---
+
+# 🔄 The 6-Step Sales Funnel
+
+The conversation follows a state-driven six-step funnel:
+
+```text
+                 ┌──────────┐
+                 │  GREET   │
+                 └────┬─────┘
+                      │
+                      ▼
+                 ┌──────────┐
+                 │ QUALIFY  │
+                 └────┬─────┘
+                      │
+                      ▼
+                 ┌──────────┐
+                 │ EDUCATE  │
+                 └────┬─────┘
+                      │
+                      ▼
+                 ┌──────────┐
+                 │ OBJECTION│
+                 └────┬─────┘
+                      │
+                      ▼
+                 ┌──────────┐
+                 │   BOOK   │
+                 └────┬─────┘
+                      │
+                      ▼
+              ┌────────────────┐
+              │ HANDOFF TO AE  │
+              └────────────────┘
+```
+
+The original sales-funnel diagram is retained:
 
 ![Zava Sales Agent 6-step funnel](images/sales-funnel.svg)
 
-The state machine lives in [`agent/app/middleware/steps.py`](agent/app/middleware/steps.py); the per-step prompts are plain text in [`agent/app/prompts/`](agent/app/prompts/).
+The state machine is implemented in:
+
+```text
+agent/app/middleware/steps.py
+```
+
+while each step has a dedicated prompt under:
+
+```text
+agent/app/prompts/
+```
+
+Each state controls:
+
+* The active system prompt
+* The tools visible to the model
+* The conversation stage
+* Lead context
+* Qualification information
+* Objection history
+* Grounding metadata
+
+The state model is defined in `agent/app/state.py`.
+
+---
+
+# 🧠 Agent Architecture
+
+The agent is constructed around a **two-tier model strategy**.
+
+### Main model
+
+Used for the user-facing sales conversation.
+
+```python
+main = ChatOpenAI(
+    model="gpt-5-mini",
+    use_responses_api=True,
+    ...
+)
+```
+
+### Utility model
+
+Used for internal middleware tasks:
+
+```python
+nano = ChatOpenAI(
+    model="gpt-5-nano",
+    use_responses_api=True,
+    tags=["nano-utility"],
+)
+```
+
+The agent composes:
+
+```text
+                  User Message
+                       │
+                       ▼
+              ┌──────────────────┐
+              │ Query Refinement  │
+              └────────┬─────────┘
+                       │
+                       ▼
+              ┌──────────────────┐
+              │ Step Configuration│
+              │ Prompt + Tools    │
+              └────────┬─────────┘
+                       │
+                       ▼
+              ┌──────────────────┐
+              │ Groundedness     │
+              │ Validation       │
+              └────────┬─────────┘
+                       │
+                       ▼
+              ┌──────────────────┐
+              │ Conversation     │
+              │ Summarization    │
+              └────────┬─────────┘
+                       │
+                       ▼
+                  Final Response
+```
+
+The implementation uses `create_agent`, `SalesState`, local tools, MCP tools, `SummarizationMiddleware`, and an `InMemorySaver` checkpointer.
+
+---
+
+# 🧩 Middleware
+
+The middleware chain performs four major functions.
+
+| Middleware         | Purpose                                               |
+| ------------------ | ----------------------------------------------------- |
+| Query refinement   | Resolves ambiguous references and improves the query  |
+| Step configuration | Injects the step-specific prompt and filters tools    |
+| Validation         | Checks whether knowledge-heavy responses are grounded |
+| Summarization      | Compresses long conversation history                  |
+
+### Tool filtering
+
+A particularly important design choice is that the agent does **not** see every tool at every stage.
+
+For example:
+
+```text
+EDUCATE
+ ├── semantic_search_products
+ ├── search_case_studies
+ ├── search_kb_articles
+ └── get_pricing
+
+OBJECTION
+ ├── search_case_studies
+ ├── search_kb_articles
+ ├── get_pricing
+ └── compare_plans
+
+BOOK
+ └── propose_meeting_times
+```
+
+This is implemented through `STEP_CONFIG` in:
+
+```text
+agent/app/middleware/steps.py
+```
+
+The middleware injects the correct prompt and filters the available tools before every model invocation.
+
+---
+
+# 🔌 MCP Server
+
+The MCP server is implemented with **FastMCP** and communicates with the agent over **streamable HTTP**.
+
+It exposes nine read-only tools:
+
+| Tool                       | Purpose                               |
+| -------------------------- | ------------------------------------- |
+| `get_current_utc_date`     | Resolve relative dates                |
+| `get_table_schemas`        | Inspect available table structures    |
+| `execute_sales_query`      | Read-only analytical SQL              |
+| `semantic_search_products` | Semantic product retrieval            |
+| `get_product_details`      | Retrieve detailed product information |
+| `search_case_studies`      | Search customer case studies          |
+| `search_kb_articles`       | Search the knowledge base             |
+| `get_pricing`              | Retrieve pricing plans                |
+| `compare_plans`            | Compare pricing/features              |
+
+The MCP implementation connects to PostgreSQL using `asyncpg` and uses Azure OpenAI embeddings for semantic retrieval.
+
+---
+
+# 🔎 Retrieval with PostgreSQL + pgvector
+
+The retrieval layer combines:
+
+```text
+User Query
+    │
+    ▼
+Azure OpenAI Embedding
+    │
+    ▼
+Vector Representation
+    │
+    ▼
+pgvector Similarity Search
+    │
+    ▼
+Relevant Product / KB / Case Study
+    │
+    ▼
+Grounded Agent Response
+```
+
+The sample uses `text-embedding-3-small` vectors and **HNSW indexes** for semantic search.
+
+### Indexed content includes
+
+* Product catalogue
+* Case studies
+* Knowledge-base articles
+* Pricing-related sales content
+
+---
+
+# ⚡ Embedding Cache
+
+The MCP server contains an in-process bounded cache for repeated embedding requests.
+
+The cache key includes:
+
+```text
+(deployment_name, query_text)
+```
+
+This means:
+
+* Repeated searches can avoid another embedding request.
+* Changing the embedding deployment naturally separates cache entries.
+* The cache is bounded rather than growing indefinitely.
+
+The implementation also protects concurrent identical embedding lookups with an async lock.
+
+---
+
+# 🛡️ SQL Guardrails
+
+The analytics escape hatch is deliberately restricted.
+
+Only:
+
+```sql
+SELECT
+```
+
+and:
+
+```sql
+WITH ...
+```
+
+queries are accepted.
+
+The server blocks dangerous patterns such as:
+
+```text
+DROP
+DELETE
+INSERT
+UPDATE
+ALTER
+TRUNCATE
+GRANT
+REVOKE
+EXEC
+CALL
+COPY
+```
+
+Multiple SQL statements are also rejected.
+
+This creates a **defense-in-depth** model:
+
+```text
+LLM-generated SQL
+       │
+       ▼
+SQL Validation
+       │
+       ├── ❌ Forbidden
+       │
+       └── ✅ Read-only
+               │
+               ▼
+        PostgreSQL Reader
+```
+
+The repository also describes the PostgreSQL role as read-only for this path.
+
+---
+
+# 🔐 Authentication
+
+The sample is designed around **keyless Azure authentication**.
+
+### Managed Identity
+
+The container services use a user-assigned identity for access to:
+
+* Azure OpenAI
+* Azure Database for PostgreSQL
+
+Instead of storing long-lived API keys, the application obtains Entra ID bearer tokens through Azure Identity.
+
+```text
+Container App
+      │
+      ▼
+User-assigned Managed Identity
+      │
+      ├──────────────► Azure OpenAI
+      │
+      └──────────────► PostgreSQL
+```
+
+This removes the need for hard-coded credentials and aligns the sample with Azure RBAC-based access.
+
+---
+
+# ☁️ Infrastructure
+
+Infrastructure is provisioned with:
+
+```text
+Azure Developer CLI (azd)
+          +
+       Bicep
+```
+
+The repository's `azure.yaml` defines two services:
+
+```text
+mcp-server
+agent
+```
+
+Both are deployed as Azure Container Apps.
+
+A `postprovision` hook is used to seed and initialize the database.
+
+---
+
+# 🚀 Quick Start
 
 ## Prerequisites
 
-- An Azure subscription. [Create one for free](https://azure.microsoft.com/free/).
-- [Azure Developer CLI (`azd`)](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd).
-- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli).
-- Python 3.11+ (only required for local development).
-- Docker (only required for the full local stack).
+You need:
 
-The fastest path is to open the repo in **GitHub Codespaces** — every tool above is preinstalled.
+* An Azure subscription
+* Azure Developer CLI (`azd`)
+* Azure CLI
+* Python 3.11+ for local development
+* Docker for the full local stack
 
-## Quick start
+GitHub Codespaces provides the required development tools automatically.
 
-Deploy the app to Azure:
+---
+
+## 1. Sign in
 
 ```bash
 az login
 azd auth login
+```
+
+---
+
+## 2. Deploy Everything
+
+```bash
 azd up
 ```
 
-`azd up` provisions Azure OpenAI (with three model deployments: `gpt-5.4-mini` for the main agent, `gpt-5-nano` for middleware utilities, and `text-embedding-3-small` for vector search), a Postgres Flexible Server with pgvector, a Container Apps environment, and the two container images. After the build finishes a postprovision hook seeds the database with the Zava DIY catalogue (~424 products with pre-computed embeddings) and the sales knowledge base (case studies, pricing plans, KB articles).
+This provisions the main Azure resources, including:
 
-**Estimated time:** ~10–15 minutes end-to-end on a fresh subscription. Postgres flexible-server creation is the slowest single step (~5–7 minutes); the model deployments, container builds, and seeding fill the rest.
+```text
+Azure OpenAI
+      +
+PostgreSQL Flexible Server
+      +
+pgvector
+      +
+Container Apps Environment
+      +
+Agent Container
+      +
+MCP Container
+```
 
-### Deployment notes
+The deployment also seeds the Zava product catalogue and sales knowledge base.
 
-- The default region is `eastus2`. Override with `azd env set AZURE_LOCATION <region>` before `azd up`. The `gpt-5.4-mini` and `gpt-5-nano` deployments need a region that has both available (e.g. `eastus2`, `swedencentral`).
-- The postprovision hook adds your current public IP to the Postgres firewall so it can run the seeders. Re-run the hook from a different network with `azd hooks run postprovision`.
-- The first `azd up` builds two container images with `uv`. Subsequent `azd deploy <service>` rebuilds for a single service take ~30–60 seconds.
+---
 
-When it finishes you'll see something like:
+# ⏱️ Deployment Notes
+
+The original sample estimates approximately **10–15 minutes** for a fresh deployment, with PostgreSQL provisioning being one of the slower steps.
+
+### Default Azure region
+
+```text
+eastus2
+```
+
+Override it with:
+
+```bash
+azd env set AZURE_LOCATION <region>
+```
+
+The chat and middleware model deployments need a region where the selected models are available.
+
+---
+
+# ✅ After Deployment
+
+You should see output similar to:
 
 ```text
 🚀 Your LangChain Agent is Ready!
 
-🌐 Web chat:   https://ca-agent-<id>.<region>.azurecontainerapps.io/
-   Health:     https://ca-agent-<id>.<region>.azurecontainerapps.io/api/health
-   MCP Server: https://ca-mcp-<id>.<region>.azurecontainerapps.io/mcp
+🌐 Web chat:
+https://ca-agent-<id>.<region>.azurecontainerapps.io/
+
+Health:
+https://ca-agent-<id>.<region>.azurecontainerapps.io/api/health
+
+MCP Server:
+https://ca-mcp-<id>.<region>.azurecontainerapps.io/mcp
 ```
 
-Open the web chat URL and try:
+Open the **Web chat** URL to interact with the agent.
 
-- _Hi, I run a 25-person property management company — do you work with teams like mine?_
-- _We're already on Big-Box Pro — why switch?_
-- _Can you show me your pricing tiers?_
+---
 
-To remove every resource later, run `azd down`.
+# 💬 Example Conversations
 
-## Repository layout
+Try prompts such as:
+
+```text
+Hi, I run a 25-person property management company.
+Do you work with teams like mine?
+```
+
+```text
+We're already on Big-Box Pro.
+Why should we switch?
+```
+
+```text
+Can you show me your pricing tiers?
+```
+
+These exercise different stages of the sales funnel.
+
+---
+
+# 📁 Repository Structure
 
 ```text
 .
-├── agent/                       # Public-facing chat service
+├── agent/
 │   ├── app/
-│   │   ├── agent.py             # build_models + build_agent (4-middleware chain)
-│   │   ├── main.py              # Starlette app, NDJSON streaming /api/chat
-│   │   ├── streaming.py         # Stream-chunk parser (text / tools / images / citations)
-│   │   ├── state.py             # SalesState (BANT fields + funnel step)
+│   │   ├── agent.py
+│   │   ├── main.py
+│   │   ├── streaming.py
+│   │   ├── state.py
+│   │   │
 │   │   ├── middleware/
-│   │   │   ├── refine.py        # Pronoun-resolution rewrite via nano model
-│   │   │   ├── steps.py         # STEP_CONFIG: per-step prompt + tool subset
-│   │   │   └── validate.py      # Groundedness check on educate/objection answers
+│   │   │   ├── refine.py
+│   │   │   ├── steps.py
+│   │   │   └── validate.py
+│   │   │
 │   │   ├── tools/
-│   │   │   └── workflow.py      # set_intent, update_lead_profile, escalate_to_ae, …
-│   │   └── prompts/             # 6 step prompts (greet, qualify, educate, objection, book, handoff_to_ae)
-│   └── static/                  # Single-page chat UI
+│   │   │   └── workflow.py
+│   │   │
+│   │   └── prompts/
+│   │       ├── greet.txt
+│   │       ├── qualify.txt
+│   │       ├── educate.txt
+│   │       ├── objection.txt
+│   │       ├── book.txt
+│   │       └── handoff_to_ae.txt
+│   │
+│   └── static/
+│
 ├── mcp/
-│   └── app.py                   # 9 MCP tools over Postgres + pgvector + cached embeddings
+│   └── app.py
+│
 ├── data/
-│   ├── generate_database.py     # Seeds the products / orders core schema
-│   └── generate_sales_kb.py     # Seeds pricing plans, KB articles, case studies (with embeddings)
-├── infra/                       # Bicep templates and parameters used by `azd up`
-└── azure.yaml                   # azd service definitions and hooks
+│   ├── generate_database.py
+│   └── generate_sales_kb.py
+│
+├── infra/
+│   └── Bicep templates
+│
+├── images/
+│   ├── app-image.png
+│   ├── debug-image.png
+│   ├── architecture.png
+│   └── sales-funnel.svg
+│
+└── azure.yaml
 ```
 
-## How it works
+---
 
-### 1. The agent — middleware chain on a two-tier model
+# 🧪 Local Development
 
-`agent/app/agent.py` builds the agent at startup inside a Starlette `lifespan` hook so the MCP connection, OpenAI credentials, and middleware closures are reused across requests:
+There are two supported approaches.
 
-```python
-main  = ChatOpenAI(model="gpt-5.4-mini", use_responses_api=True, ...)
-nano  = ChatOpenAI(model="gpt-5-nano", use_responses_api=True, tags=["nano-utility"])
+## Option 1: Cloud PostgreSQL + Local Services
 
-refine_query      = make_refine_query(nano)
-validate_response = make_validate_response(nano)
-summariser        = SummarizationMiddleware(model=nano, max_tokens_before_summary=4000)
-
-agent = create_agent(
-    model=main,
-    tools=LOCAL_TOOLS + mcp_tools,
-    state_schema=SalesState,
-    middleware=[refine_query, apply_step_config, validate_response, summariser],
-    checkpointer=InMemorySaver(),
-)
-```
-
-Things worth noting:
-
-- **Two-tier model**. The expensive `gpt-5-mini` only runs the user-facing turn; pronoun-resolution, groundedness checks, and summarisation use the cheap `gpt-5-nano`. Every nano call is tagged with `nano-utility` so the chat UI can suppress its tokens from the visible bubble.
-- **`apply_step_config`** is the heart of the funnel. On every model call it reads `state["current_step"]`, swaps in that step's system prompt, and filters `request.tools` down to the tools the step actually allows. The model can only call what the step exposes.
-- **`validate_response`** runs in `educate` and `objection` only. It looks for `[doc-id]` citations in the assistant's answer and rewrites ungrounded answers to ask the user whether to escalate to a human AE — instead of silently hallucinating pricing or case studies.
-- **`use_responses_api=True`** opts into Azure OpenAI's Responses API, which lets the model call hosted tools like `code_interpreter` directly. `api_key=token_provider` is a callable that returns a fresh Entra ID bearer token, so there are no API keys anywhere.
-
-### 2. The MCP server — sales-content tools with cached embeddings
-
-`mcp/app.py` uses [FastMCP](https://github.com/jlowin/fastmcp) to expose nine read-only tools to the agent. Each tool corresponds to something a step prompt actually asks for:
-
-| Tool                       | Step that uses it      | Purpose                                                                          |
-| -------------------------- | ---------------------- | -------------------------------------------------------------------------------- |
-| `get_current_utc_date`     | any                    | Anchors relative dates like _"next Tuesday"_.                                    |
-| `get_table_schemas`        | analytics escape hatch | Column definitions for the `retail` schema.                                      |
-| `execute_sales_query`      | analytics escape hatch | Read-only ad-hoc SQL. Defence-in-depth: read-only Postgres role + SQL deny-list. |
-| `semantic_search_products` | educate                | pgvector cosine search over product descriptions.                                |
-| `get_product_details`      | educate                | Full record for one `product_id`.                                                |
-| `search_case_studies`      | educate, objection     | Embedded customer stories, optionally filtered by industry / team size.          |
-| `search_kb_articles`       | educate, objection     | Embedded FAQ / how-Zava-works articles.                                          |
-| `get_pricing`              | educate, objection     | Pricing plan(s) with a `[plan-id]` citation.                                     |
-| `compare_plans`            | objection              | Side-by-side feature/price comparison.                                           |
-
-Every embedding lookup goes through an **in-process LRU cache** keyed on `(deployment_name, query_text)` — so repeated `"do you have customers like us?"`-style queries inside a session are free. The deployment name is part of the key so swapping models invalidates the cache automatically.
-
-The agent talks to this server over the `streamable_http` MCP transport — no shared library, just HTTP. That's what makes it easy to swap the MCP server out for one written in any other language.
-
-### 3. Authentication — Entra ID end to end
-
-Every cross-service hop uses Managed Identity:
-
-- The agent's container has a user-assigned identity granted **Cognitive Services User** on the Azure OpenAI account.
-- The MCP server's container uses the same identity to authenticate to **Azure Database for PostgreSQL** and to **Azure OpenAI** (for embedding queries).
-- There are no client secrets, connection strings with passwords, or API keys committed to the repo or stored in Container Apps env vars.
-
-### 4. Infrastructure — Bicep + `azd`
-
-`infra/main.bicep` provisions everything in a single deployment:
-
-- Azure OpenAI account with two model deployments (chat + embeddings).
-- Postgres Flexible Server with `pgvector` enabled and Entra ID auth on.
-- Container Apps environment plus two Container Apps (`agent` and `mcp-server`).
-- Log Analytics workspace and Application Insights for observability.
-
-`azure.yaml` declares the two services, points them at their Dockerfiles, and registers a `postprovision` hook that creates the `retail` schema, loads the seed JSON files, and regenerates embeddings against whatever embedding model was actually deployed.
-
-## Local development
-
-You have two options. Both assume you've run `azd up` at least once so Azure OpenAI exists.
-
-### Option 1 — Cloud Postgres, local services (recommended)
+Recommended when you want to develop the Python services locally while using Azure infrastructure.
 
 ```bash
-# Pull the deployed environment values
 azd env get-values > .env.local
+
 echo "MCP_SERVER_URL=http://localhost:8000" >> .env.local
-
-# Terminal 1 — MCP server
-cd mcp && source ../.env.local && python app.py
-
-# Terminal 2 — agent
-cd agent && source ../.env.local && PORT=8001 python app.py
-
-# Open http://localhost:8001
 ```
 
-This runs both Python services on your machine but uses the cloud Postgres and Azure OpenAI deployments.
-
-### Option 2 — Full local stack
+### Terminal 1
 
 ```bash
-docker compose up -d                         # local Postgres + pgvector
-cp .env.example .env.local                   # add your Azure OpenAI endpoint
-cd data && source ../.env.local && \
-  python generate_database.py && \
-  python generate_sales_kb.py && \
-  python regenerate_embeddings.py            # match embeddings to your deployment
-# Then start mcp/ and agent/ as in Option 1
+cd mcp
+source ../.env.local
+python app.py
 ```
 
-VS Code tasks (`Cmd/Ctrl+Shift+P` → _Tasks: Run Task_) are pre-configured for **Start MCP Server**, **Start Agent**, **Start PostgreSQL (Docker)**, and **Initialize Database**.
+### Terminal 2
 
-## Customise it
+```bash
+cd agent
+source ../.env.local
+PORT=8001 python app.py
+```
 
-### Add a new MCP tool
+Then open:
 
-Add a function to `mcp/app.py` and decorate it. The agent will pick it up on the next start, but **the tool will only be visible inside steps that whitelist its name** in `agent/app/middleware/steps.py`:
+```text
+http://localhost:8001
+```
+
+---
+
+# 🐳 Option 2: Full Local Stack
+
+Start PostgreSQL + pgvector:
+
+```bash
+docker compose up -d
+```
+
+Create local environment variables:
+
+```bash
+cp .env.example .env.local
+```
+
+Then initialize the database:
+
+```bash
+cd data
+
+source ../.env.local
+
+python generate_database.py
+python generate_sales_kb.py
+python regenerate_embeddings.py
+```
+
+After that, start the MCP and agent services.
+
+---
+
+# 🧰 VS Code Tasks
+
+The repository includes development tasks for:
+
+```text
+▶ Start MCP Server
+▶ Start Agent
+▶ Start PostgreSQL (Docker)
+▶ Initialize Database
+```
+
+Open:
+
+```text
+Command Palette
+→ Tasks: Run Task
+```
+
+---
+
+# 🛠️ Customization
+
+## Add a New MCP Tool
+
+Create a tool in:
+
+```text
+mcp/app.py
+```
+
+Example:
 
 ```python
-# mcp/app.py
-@mcp.tool(annotations={"title": "Top Categories", "readOnlyHint": True})
-async def top_categories(limit: int = 5, ctx: Context = None) -> str:
+@mcp.tool(
+    annotations={
+        "title": "Top Categories",
+        "readOnlyHint": True
+    }
+)
+async def top_categories(
+    limit: int = 5,
+    ctx: Context = None
+) -> str:
     """Return the top-selling product categories."""
     ...
 ```
 
+Then whitelist it for the relevant funnel step:
+
 ```python
-# agent/app/middleware/steps.py
-STEP_CONFIG["educate"]["tools"].add("top_categories")
+STEP_CONFIG["educate"]["tools"].add(
+    "top_categories"
+)
 ```
 
-### Change the model
+This is important because simply creating an MCP tool does **not** automatically expose it to every agent step.
 
-Edit `infra/main.parameters.json`:
+---
+
+# 🤖 Change the Model
+
+Update:
+
+```text
+infra/main.parameters.json
+```
+
+For example:
 
 ```json
-{ "openAiModelName": { "value": "gpt-5-mini" } }
+{
+  "openAiModelName": {
+    "value": "gpt-5-mini"
+  }
+}
 ```
 
-Use a model that supports the Responses API. Note that not every model supports every hosted tool — check the [Azure OpenAI model matrix](https://learn.microsoft.com/azure/ai-services/openai/concepts/models).
+The selected model must support the required Responses API capabilities.
 
-### Adjust agent behaviour
+---
 
-Each funnel step is a separate prompt file under `agent/app/prompts/`. To change how the agent qualifies leads, edit `qualify.txt`. To change which tools that step is allowed to call, edit the corresponding entry in `agent/app/middleware/steps.py`. Redeploy with `azd deploy agent`.
+# 📝 Customize Agent Behaviour
 
-### Future work — WorkIQ MCP integration
+Each funnel stage has an independent prompt.
 
-The `book` step currently calls `propose_meeting_times` (text-only) and hands the actual calendar booking to the AE on escalation. The natural next step is to wire [Microsoft Work IQ MCP servers](https://learn.microsoft.com/en-us/microsoft-agent-365/tooling-servers-overview) (`mcp_CalendarServer`, `mcp_TeamsServer`, `mcp_MailTools`) as a second `MultiServerMCPClient` entry, so the agent can directly book meetings, pull recent emails about a lead, and check Teams discussions. Work IQ uses delegated OAuth + a Microsoft 365 Copilot license, so the deployment story will need an MSAL.js sign-in on the chat UI to forward a per-request user bearer to the agent.
+For example:
 
-## Monitoring
+```text
+agent/app/prompts/qualify.txt
+```
+
+controls qualification behaviour.
+
+Tool permissions are defined in:
+
+```text
+agent/app/middleware/steps.py
+```
+
+After changing the agent:
 
 ```bash
-azd monitor                                                                  # opens Application Insights
-az containerapp logs show -n <agent-name> -g <rg-name> --follow              # tail logs
+azd deploy agent
 ```
 
-Application Insights captures every request to `/api/chat`, every MCP tool call, and every Azure OpenAI request, with end-to-end traces.
+---
 
-## Clean up
+# 🧠 Conversation State
+
+The `SalesState` model maintains the state of the sales conversation.
+
+Important fields include:
+
+```text
+current_step
+intent
+lead_id
+lead_email
+company_name
+industry
+team_size
+budget
+authority
+need
+timeline
+current_tools
+objection_history
+last_retrieved_docs
+awaiting_escalation_confirmation
+```
+
+This allows the conversation to maintain structured sales context instead of relying solely on chat history.
+
+---
+
+# 📅 Future Work: Work IQ MCP Integration
+
+The current `book` stage uses:
+
+```text
+propose_meeting_times
+```
+
+and escalates actual calendar booking to a human AE.
+
+A future extension described by the project is integration with Microsoft Work IQ MCP servers such as:
+
+```text
+mcp_CalendarServer
+mcp_TeamsServer
+mcp_MailTools
+```
+
+This could allow the agent to:
+
+* Schedule meetings
+* Read relevant email context
+* Check Teams discussions
+* Enrich lead conversations
+
+The authentication and deployment model would require delegated Microsoft identity/OAuth handling.
+
+---
+
+# 📊 Monitoring & Observability
+
+Application Insights is used for telemetry when deployed.
+
+### Open monitoring
+
+```bash
+azd monitor
+```
+
+### Tail Container App logs
+
+```bash
+az containerapp logs show \
+  -n <agent-name> \
+  -g <rg-name> \
+  --follow
+```
+
+The application captures information across:
+
+```text
+HTTP Request
+     ↓
+Agent Execution
+     ↓
+MCP Tool Calls
+     ↓
+Azure OpenAI Requests
+     ↓
+End-to-End Telemetry
+```
+
+---
+
+# 🧹 Clean Up
+
+To remove all Azure resources created by `azd up`:
 
 ```bash
 azd down
 ```
 
-This deletes the resource group and every resource provisioned by `azd up`.
-
-## Resources
-
-- [Azure OpenAI Responses API](https://learn.microsoft.com/azure/ai-services/openai/how-to/responses)
-- [LangChain](https://python.langchain.com/) and [`langchain-mcp-adapters`](https://github.com/langchain-ai/langchain-mcp-adapters)
-- [Model Context Protocol](https://modelcontextprotocol.io/) and [FastMCP](https://github.com/jlowin/fastmcp)
-- [Azure Developer CLI](https://learn.microsoft.com/azure/developer/azure-developer-cli/)
-- [pgvector](https://github.com/pgvector/pgvector)
-- This sample is inspired by the [Microsoft AI Tour WRK540 workshop](https://github.com/microsoft/aitour26-WRK540-unlock-your-agents-potential-with-model-context-protocol) and reuses its product catalogue.
-
-## Contributing
-
-This project welcomes contributions. Most contributions require you to agree to a Contributor License Agreement; see [https://cla.opensource.microsoft.com](https://cla.opensource.microsoft.com).
-
-## License
-
-MIT — see [LICENSE](LICENSE).
+This removes the resource group and associated provisioned resources.
 
 ---
 
-Questions? Open an issue on [GitHub](https://github.com/Azure-Samples/langchain-agent-python/issues) or read [SUPPORT.md](SUPPORT.md).
+# 🧱 Technology Stack
+
+| Technology                 | Role                     |
+| -------------------------- | ------------------------ |
+| **Python 3.11+**           | Application development  |
+| **LangChain v1**           | Agent orchestration      |
+| **Azure OpenAI**           | LLM + embeddings         |
+| **Responses API**          | Agent/tool interaction   |
+| **Model Context Protocol** | Tool integration layer   |
+| **FastMCP**                | MCP server               |
+| **PostgreSQL**             | Operational data store   |
+| **pgvector**               | Vector similarity search |
+| **asyncpg**                | Async PostgreSQL access  |
+| **Starlette**              | Agent web service        |
+| **Azure Container Apps**   | Application hosting      |
+| **Azure Developer CLI**    | Provisioning/deployment  |
+| **Bicep**                  | Infrastructure as code   |
+| **Entra ID**               | Authentication           |
+| **Managed Identity**       | Keyless Azure access     |
+| **Application Insights**   | Monitoring               |
+
+---
+
+# 📐 Design Principles
+
+### 1. Separation of Concerns
+
+```text
+Agent
+  │
+  └── Conversation + orchestration
+
+MCP
+  │
+  └── Data + business tools
+
+PostgreSQL
+  │
+  └── Persistent data
+
+Azure OpenAI
+  │
+  └── Generation + embeddings
+```
+
+### 2. Least-Privilege Tool Access
+
+Each funnel stage only exposes the tools it needs.
+
+### 3. Grounded Generation
+
+Knowledge-heavy stages can validate responses against retrieved documents.
+
+### 4. Keyless Authentication
+
+Managed Identity avoids long-lived secrets.
+
+### 5. Independent Deployment
+
+The agent and MCP service are deployed as separate Container Apps.
+
+### 6. Reproducible Infrastructure
+
+`azd up` + Bicep provides a repeatable cloud deployment workflow.
+
+---
+
+# 🎯 Why This Architecture Matters
+
+This sample demonstrates an architecture that goes beyond a simple chatbot.
+
+Instead of:
+
+```text
+User → LLM → Answer
+```
+
+the system follows:
+
+```text
+User
+  ↓
+Conversation State
+  ↓
+Step-specific Prompt
+  ↓
+Step-specific Tool Permissions
+  ↓
+MCP
+  ↓
+PostgreSQL / pgvector
+  ↓
+Grounded Context
+  ↓
+Azure OpenAI Responses API
+  ↓
+Validation
+  ↓
+Sales Response
+```
+
+This makes the system easier to reason about, extend, secure, and operate.
+
+---
+
+# 🔗 Resources
+
+* [Azure OpenAI Responses API](https://learn.microsoft.com/azure/ai-services/openai/how-to/responses)
+* [LangChain](https://python.langchain.com/)
+* [LangChain MCP Adapters](https://github.com/langchain-ai/langchain-mcp-adapters)
+* [Model Context Protocol](https://modelcontextprotocol.io/)
+* [FastMCP](https://github.com/jlowin/fastmcp)
+* [PostgreSQL](https://www.postgresql.org/)
+* [pgvector](https://github.com/pgvector/pgvector)
+* [Azure Developer CLI](https://learn.microsoft.com/azure/developer/azure-developer-cli/)
+* [Azure Container Apps](https://learn.microsoft.com/azure/container-apps/)
+* [Azure OpenAI Models](https://learn.microsoft.com/azure/ai-services/openai/concepts/models)
+* [Microsoft Work IQ Tooling Servers](https://learn.microsoft.com/en-us/microsoft-agent-365/tooling-servers-overview)
+
+This sample is also inspired by the **Microsoft AI Tour WRK540 workshop** and reuses its product catalogue.
+
+---
+
+# 🤝 Contributing
+
+Contributions are welcome.
+
+Most contributions require agreement to a Contributor License Agreement.
+
+See:
+
+https://cla.opensource.microsoft.com
+
+For questions or issues, open a GitHub issue in this repository.
+
+---
+
+# 📄 License
+
+This project is licensed under the **MIT License**.
+
+See [LICENSE](LICENSE) for details.
+
+---
+
+<div align="center">
+
+## ⭐ Explore • Build • Extend
+
+<p>
+  <a href="https://github.com/Azure-Samples/langchain-agent-python">
+    <img src="https://img.shields.io/badge/⭐%20Star%20Repository-181717?style=for-the-badge&logo=github&logoColor=white" alt="Star Repository"/>
+  </a>
+  <a href="https://codespaces.new/Azure-Samples/langchain-agent-python">
+    <img src="https://img.shields.io/badge/⚡%20Open%20in%20Codespaces-0078D4?style=for-the-badge&logo=githubcodespaces&logoColor=white" alt="Open in Codespaces"/>
+  </a>
+</p>
+
+<br/>
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0078D4,50:5B5FC7,100:7F56D9&height=150&section=footer&text=LangChain%20%2B%20MCP%20%2B%20Azure%20OpenAI&fontSize=24&fontColor=ffffff&animation=fadeIn" width="100%" alt="Animated footer"/>
+
+</div>
